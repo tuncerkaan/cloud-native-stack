@@ -1,0 +1,21 @@
+server:
+  port: 9999
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+
+eureka:
+  client:
+    enabled:  ${EUREKA_ENABLED:false}
+
+spring:
+  application:
+    name: edge-gateway
+  cloud:
+    kubernetes:
+      enabled: ${KUBE_ENABLED:false}
+
