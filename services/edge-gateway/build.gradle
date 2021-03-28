@@ -1,41 +1,49 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.5.RELEASE'
+    id 'org.springframework.boot' version '2.3.8.BUILD-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
+    id 'com.palantir.docker' version '0.22.1'
+    id 'com.palantir.docker-run' version '0.22.1'
 }
 
-apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.palantir.docker'
 
 group = 'com.mythworks'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
-
-configurations {
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-}
+version = 'v1'
+sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 ext {
-    set('springCloudVersion', "Greenwich.SR1")
+    set('springCloudVersion', "Hoxton.SR8")
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-zuul'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-zuul'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
 
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+docker {
+    name "${project.name}:${version}"
+    dockerfile file('src/main/docker/Dockerfile')
+    files tasks.jar.outputs,
+            'src/main/docker/run.sh'
+    copySpec.rename("${project.name}-${version}.jar", "app.jar")
+    buildArgs([BUILD_VERSION: "${version}"])
+    buildArgs([PROJECT: "${project.name}"])
+    labels(['project': "${project.name}", 'tag': "${version}"])
 }
 
 dependencyManagement {
