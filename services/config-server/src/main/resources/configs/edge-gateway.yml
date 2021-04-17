@@ -7,7 +7,6 @@ management:
       exposure:
         include: '*'
 
-
 eureka:
   client:
     enabled:  ${EUREKA_ENABLED:false}
